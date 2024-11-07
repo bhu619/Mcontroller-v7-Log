@@ -5,8 +5,8 @@
 ## 说明
 文件结构：
 
-```cpp
-project_root/
+```plaintext
+LogAnalyze/
 │
 ├── config/                 # 配置模块，用于命令行参数解析
 │
@@ -16,7 +16,7 @@ project_root/
 │
 ├── plot_module/            # 绘图模块，包含所有绘图相关的函数
 │
-├── modedrawing/			# 根据机器人不同运动模式，调用相应的绘图函数
+├── modedrawing/            # 根据机器人不同运动模式，调用相应的绘图函数
 │
 └── test/                   # 测试模块，用于存储测试脚本
 ```
