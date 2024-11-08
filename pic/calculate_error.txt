@@ -1,0 +1,9 @@
+RMSE Pitch : 0.641
+RMSE Roll   : 0.860
+RMSE YAW : 12.354
+
+RMSE POS  : 0.045
+
+MAE  Pitch  : 0.396
+MAE  Roll    : 0.529
+MAE  YAW  : 1.244
