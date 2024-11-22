@@ -14,6 +14,24 @@ def read_data(_data, vc, cc):
     data.loc[:, 't_ms'] = data['t_ms'] - data['t_ms'].min()  # 处理时间 t_ms
     data['t_s'] = data['t_ms'] * 0.001  # ms转换为s
 
+    # # 删除 85 <= t_s < 92 的数据
+    # mask_to_delete = (data['t_s'] >= 85) & (data['t_s'] < 92)
+    # data = data.loc[~mask_to_delete]  # 保留不在该范围内的数据
+    # # 标记 92s 之后的部分
+    # mask_shift = data['t_s'] >= 92  # 找到 t_s >= 92 的行
+    #
+    # # 将 92s 之后的数据整体前移 7s
+    # data.loc[mask_shift, 't_s'] -= 7
+    #
+    # # 删除时间点重复的数据，只保留最早的行
+    # data = data.drop_duplicates(subset='t_s', keep='first')
+    # data['t_s'] -= 35
+    #
+    # # 为重复时间点增加微小偏移量
+    # while data['t_s'].duplicated().any():
+    #     duplicated_indices = data[data['t_s'].duplicated()].index
+    #     data.loc[duplicated_indices, 't_s'] += 0.001  # 每次加 0.001s
+
     data['t_out'] = data['t_out'] * 100  # 油门数据 放大为 0 ~ 100
 
     data['odom_x'] = data['odom_x'] * 0.01  # 单位 cm 变为 m
@@ -23,8 +41,16 @@ def read_data(_data, vc, cc):
     data['rf_alt_t'] = data['rf_alt_t'] * 0.01
     data['rf_alt'] = data['rf_alt'] * 0.01
 
-    data['voltage'] = data['voltage'] * vc  # voltage_coefficient 为电压系数
+    # # 根据 t_out 条件设置电流和电压系数
+    # data['current_coefficient'] = data['t_out'].apply(lambda x: 4 if x < 10 else 1.5)
+    # data['voltage_coefficient'] = data['t_out'].apply(lambda x: 2 if x < 10 else 13.7)
+    #
+    # # 更新电流和电压值
+    # data['current'] = data['current'] * data['current_coefficient']
+    # data['voltage'] = data['voltage'] * data['voltage_coefficient']
+
     data['current'] = data['current'] * cc  # current_coefficient 为电流系数
+    data['voltage'] = data['voltage'] * vc  # voltage_coefficient 为电压系数
     data['power'] = data['voltage'] * data['current']  # 计算功率 P
 
     # 计算姿态角误差
@@ -68,27 +94,27 @@ def filter_data(data, folder_path, min_t_out, max_t_out, min_t_s, max_t_s, vc, c
     file_path_filter = f'{folder_path}\\filter_data.txt'
     # 使用 'with' 和 'open' 创建新文件并写入数据
     with open(file_path_filter, 'w') as file:
-        file.write(f"最小时间 : {min_t_s}\n")
-        file.write(f"最大时间 : {max_t_s}\n")
+        file.write(f"最小时间 : {min_t_s} (s)\n")
+        file.write(f"最大时间 : {max_t_s} (s)\n")
         file.write(f"最小油门 : {min_t_out}\n")
         file.write(f"最大油门 : {max_t_out}\n")
-        file.write(f"最大Pitch : { max_pitch }\n")
-        file.write(f"最小Pitch : { min_pitch }\n")
-        file.write(f"最大Roll  : { max_roll }\n")
-        file.write(f"最小Roll  : { min_roll }\n")
-        file.write(f"最大Yaw   : { max_yaw }\n")
-        file.write(f"最小Yaw   : { min_yaw }\n")
-        file.write(f"平均功率   : { avg_power:.3f}\n")
-        file.write(f"平均电流   : { avg_current:.3f}\n")
-        file.write(f"平均电压   : { avg_voltage:.3f}\n")
+        file.write(f"最大Pitch : { max_pitch } (°)\n")
+        file.write(f"最小Pitch : { min_pitch } (°)\n")
+        file.write(f"最大Roll  : { max_roll } (°)\n")
+        file.write(f"最小Roll  : { min_roll } (°)\n")
+        file.write(f"最大Yaw   : { max_yaw } (°)\n")
+        file.write(f"最小Yaw   : { min_yaw } (°)\n")
+        file.write(f"平均功率   : { avg_power:.3f} (W)\n")
+        file.write(f"平均电流   : { avg_current:.3f} (A)\n")
+        file.write(f"平均电压   : { avg_voltage:.3f} (V)\n")
         file.write(f"电压修正系数   : { vc }\n")
         file.write(f"电流修正系数   : { cc }\n")
-        file.write(f"最大Pitch误差 : {max_pitch_e:.3f}\n")
-        file.write(f"最小Pitch误差 : {min_pitch_e:.3f}\n")
-        file.write(f"最大Roll误差  : {max_roll_e:.3f}\n")
-        file.write(f"最小Roll误差  : {min_roll_e:.3f}\n")
-        file.write(f"最大Yaw误差   : {max_yaw_e:.3f}\n")
-        file.write(f"最小Yaw误差   : {min_yaw_e:.3f}\n")
+        file.write(f"最大Pitch误差 : {max_pitch_e:.3f} (°)\n")
+        file.write(f"最小Pitch误差 : {min_pitch_e:.3f} (°)\n")
+        file.write(f"最大Roll误差  : {max_roll_e:.3f} (°)\n")
+        file.write(f"最小Roll误差  : {min_roll_e:.3f} (°)\n")
+        file.write(f"最大Yaw误差   : {max_yaw_e:.3f} (°)\n")
+        file.write(f"最小Yaw误差   : {min_yaw_e:.3f} (°)\n")
 
         file.write(f"飞行中油门的最大值 : {max_throttle}\n")
 
@@ -130,13 +156,13 @@ def calc_rmse_mae(data, folder_path):
     try:
         with open(file_path_rmse, 'w') as file:
             file.writelines([
-                f"RMSE Pitch : {rmse_pitch:.3f}\n",
-                f"RMSE Roll   : {rmse_roll:.3f}\n",
-                f"RMSE YAW : {rmse_yaw:.3f}\n\n",
-                f"RMSE POS  : {rmse_pos:.3f}\n\n",
-                f"MAE  Pitch  : {mae_pitch_e:.3f}\n",
-                f"MAE  Roll    : {mae_roll_e:.3f}\n",
-                f"MAE  YAW  : {mae_yaw_e:.3f}\n"
+                f"RMSE Pitch : {rmse_pitch:.3f} (°)\n",
+                f"RMSE Roll   : {rmse_roll:.3f} (°)\n",
+                f"RMSE YAW : {rmse_yaw:.3f} (°)\n\n",
+                f"RMSE POS  : {rmse_pos:.3f} (m)\n\n",
+                f"MAE  Pitch  : {mae_pitch_e:.3f} (°)\n",
+                f"MAE  Roll    : {mae_roll_e:.3f} (°)\n",
+                f"MAE  YAW  : {mae_yaw_e:.3f} (°)\n"
             ])
         print(f"Data has been successfully saved to {file_path_rmse}.\n")
     except Exception as e:

@@ -538,6 +538,56 @@ def plot_power(data, folder_path, p_min, p_max):
     plt.close()
 
 
+def plot_power_temp(data, folder_path, p_min, p_max):
+    # Plot Power
+    avg_power = data['power'].mean()
+    text_fontsize = 30
+
+    plt.figure(figsize=(12, 7))
+    plt.plot(data['t_s'], data['power'], label='Power', color='red', linestyle='-', linewidth=2)
+    plt.xlabel('Time (s)', fontsize=label_fontsize)
+    plt.ylabel('Power (W)', fontsize=label_fontsize)
+    plt.ylim(p_min, p_max)
+    plt.legend(fontsize=legend_fontsize)
+    plt.grid(True, alpha=0.5)
+
+    if formatter is not None:
+        plt.gca().yaxis.set_major_formatter(formatter)
+        plt.gca().xaxis.set_major_formatter(formatter)
+    plt.tick_params(axis='both', which='both', labelsize=axis_fontsize)
+
+    # 添加标注函数
+    def find_nearest_time(target_time):
+        # 查找与 target_time 最接近的时间点
+        idx_nearest = (data['t_s'] - target_time).abs().idxmin()
+        return data.loc[idx_nearest]
+
+    # 添加 77 秒处的标注
+    closest_to_77 = find_nearest_time(41.0)
+    plt.scatter(closest_to_77['t_s'], closest_to_77['power'], color='black', s=60)
+    plt.annotate('Start of mode transition',
+                 xy=(closest_to_77['t_s'], closest_to_77['power']),  # 箭头指向的点
+                 xytext=(closest_to_77['t_s'] - 5, closest_to_77['power'] + 39),  # 文本的位置
+                 fontsize=text_fontsize,
+                 arrowprops=dict(facecolor='black', arrowstyle="->", linewidth=3),
+                 ha='center')
+
+    # 添加 92 秒处的标注
+    closest_to_92 = find_nearest_time(50.0)
+    plt.scatter(closest_to_92['t_s'], closest_to_92['power'], color='black', s=60)
+    plt.annotate('Take off',
+                 xy=(closest_to_92['t_s'], closest_to_92['power']),  # 箭头指向的点
+                 xytext=(closest_to_92['t_s'] + 15, closest_to_92['power'] + 61),  # 文本的位置
+                 fontsize=text_fontsize,
+                 arrowprops=dict(facecolor='black', arrowstyle="->", linewidth=3),
+                 ha='center')
+
+    plt.tight_layout()
+    file_name = 'power_temp.png'
+    plt.savefig(os.path.join(folder_path, file_name))
+    plt.close()
+
+
 def plot_current(data, folder_path, c_min, c_max):
     plt.figure(figsize=(12, 6))
     plt.plot(data['t_s'], data['current'], label='Current', color='red', linestyle='-', linewidth=3)

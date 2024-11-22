@@ -36,7 +36,8 @@ def main():
 
 
             # print(filtered_data.describe())
-            modedrawing.plot_data_flight(filtered_data, folder_path)
+            # modedrawing.plot_data_flight(filtered_data, folder_path)
+            modedrawing.my_debug(filtered_data, folder_path)
 
         except Exception as e:
             print(f"Error processing file {data_file}: {e}")
